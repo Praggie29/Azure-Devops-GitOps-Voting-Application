@@ -12,34 +12,32 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: 'b15b5282-a4e2-4f9a-ba8e-869ae71734a0'
+  dockerRegistryServiceConnection: 'c32e56c8-cca4-40da-aa7b-da49fd29117d'
   imageRepository: 'workerapp'
   containerRegistry: 'pragnyaaurecicd.azurecr.io'
-  dockerfilePath: '$(Build.SourcesDirectory)/worker/Dockerfile'  # <--- FIXED PATH
+  dockerfilePath: '$(Build.SourcesDirectory)/result/Dockerfile'
   tag: '$(Build.BuildId)'
-  DOCKER_BUILDKIT: '1'                                        # <--- ENABLED BUILDKIT FOR .NET PLATFORM ARGS
 
 pool:
  name: 'azureagent'
 
 stages:
 - stage: Build
-  displayName: Build 
+  displayName: Build
   jobs:
   - job: Build
     displayName: Build
     steps:
     - task: Docker@2
-      displayName: Build an image to container registry
+      displayName: Build the image to container registry
       inputs:
         containerRegistry: '$(dockerRegistryServiceConnection)'
         repository: '$(imageRepository)'
         command: 'build'
-        Dockerfile: '$(dockerfilePath)'  # <--- Using the corrected variable here
+        Dockerfile: 'result/Dockerfile'
         tags: '$(tag)'
-        
 - stage: Push
-  displayName: Push 
+  displayName: Push
   jobs:
   - job: Push
     displayName: Push
