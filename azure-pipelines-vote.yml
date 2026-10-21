@@ -35,7 +35,6 @@ stages:
         command: 'build'
         Dockerfile: 'vote/Dockerfile'
         tags: '$(tag)'
-stages:
 - stage: Push
   displayName: Push
   jobs:
