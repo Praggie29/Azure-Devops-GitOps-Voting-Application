@@ -15,8 +15,9 @@ variables:
   dockerRegistryServiceConnection: 'b15b5282-a4e2-4f9a-ba8e-869ae71734a0'
   imageRepository: 'workerapp'
   containerRegistry: 'pragnyaaurecicd.azurecr.io'
-  dockerfilePath: '$(Build.SourcesDirectory)/result/Dockerfile'
+  dockerfilePath: '$(Build.SourcesDirectory)/worker/Dockerfile'  # <--- FIXED PATH
   tag: '$(Build.BuildId)'
+  DOCKER_BUILDKIT: '1'                                        # <--- ENABLED BUILDKIT FOR .NET PLATFORM ARGS
 
 pool:
  name: 'azureagent'
@@ -34,8 +35,9 @@ stages:
         containerRegistry: '$(dockerRegistryServiceConnection)'
         repository: '$(imageRepository)'
         command: 'build'
-        Dockerfile: 'worker/Dockerfile'
+        Dockerfile: '$(dockerfilePath)'  # <--- Using the corrected variable here
         tags: '$(tag)'
+        
 - stage: Push
   displayName: Push 
   jobs:
