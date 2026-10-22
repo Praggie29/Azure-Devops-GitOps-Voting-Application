@@ -1,28 +1,48 @@
 #!/bin/bash
 
+set -e
 set -x
 
-# Set the repository URL
-REPO_URL="https://DuKm77ZPhYr5CsaiQiY0xxuJw843YsPV2Jh1Tz9B0FSEkaXQLV8jJQQJ99CJACAAAAAlXmSeAAASAZDO1eBi@dev.azure.com/<AZURE-DEVOPS-ORG-NAME>/voting-app/_git/voting-app"
+# Arguments:
+# $1: Service name (e.g., vote, result, worker)
+# $2: Image repository name (e.g., vote, result, worker)
+# $3: Image tag / Build ID
 
-# Clone the git repository into the /tmp directory
-git clone "$REPO_URL" /tmp/temp_repo
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <service-name> <image-name> <image-tag>"
+    exit 1
+fi
 
-# Navigate into the cloned repository directory
-cd /tmp/temp_repo
+SERVICE_NAME=$1
+IMAGE_NAME=$2
+IMAGE_TAG=$3
 
-# Make changes to the Kubernetes manifest file(s)
-# For example, let's say you want to change the image tag in a deployment.yaml file
-sed -i "s|image:.*|image: pragnyaaurecicd/$2:$3|g" k8s-specifications/$1-deployment.yaml
+# Use an environment variable for the PAT (fallback to placeholder if not set)
+AZURE_PAT="${AZURE_DEVOPS_PAT:-<AZURE_PERSONAL_ACCESS_TOKEN>}"
+REPO_URL="https://${AZURE_PAT}@dev.azure.com/23P31A04D6/voting-application/_git/voting-application"
 
-# Add the modified files
-git add .
+# Temporary directory for repository clone
+TEMP_DIR=$(mktemp -d /tmp/gitops-sync-XXXXXX)
 
-# Commit the changes
-git commit -m "Update Kubernetes manifest"
+# Clone the git repository
+git clone "$REPO_URL" "$TEMP_DIR"
 
-# Push the changes back to the repository
+# Navigate into the cloned directory
+cd "$TEMP_DIR"
+
+# Configure Git committer identity for automated pipeline commits
+git config user.name "Azure DevOps Pipeline"
+git config user.email "azure-devops-ci@noreply.azure.com"
+
+# Update the Kubernetes manifest file with the new container image tag
+sed -i "s|image:.*|image: pragnyaaurecicd/${IMAGE_NAME}:${IMAGE_TAG}|g" "k8s-specifications/${SERVICE_NAME}-deployment.yaml"
+
+# Stage, commit and push the updated manifest
+git add "k8s-specifications/${SERVICE_NAME}-deployment.yaml"
+git commit -m "chore(ci): update ${SERVICE_NAME} deployment image to tag ${IMAGE_TAG} [skip ci]"
 git push
 
-# Cleanup: remove the temporary directory
-rm -rf /tmp/temp_repo
+# Cleanup: remove temporary directory
+rm -rf "$TEMP_DIR"
+
+echo "Successfully updated manifest for ${SERVICE_NAME} to tag ${IMAGE_TAG}!"
