@@ -34,14 +34,4 @@ A cloud-native microservices architecture deploying a multi-tier voting applicat
    - Argo CD running in AKS monitors Azure Repos via scoped Personal Access Token (PAT).
    - Automatically synchronizes cluster state with Git commits (zero-downtime, self-healing).
 
----
 
-## 📂 Project Structure
-
-```text
-├── .azure-pipelines/       # 3 Multi-stage Azure DevOps CI Pipelines
-├── k8s-specifications/     # Kubernetes deployments, services, and ingress
-├── scripts/                # Automated manifest update scripts
-├── vote/                   # Python frontend microservice
-├── result/                 # Node.js frontend microservice
-└── worker/                 # Worker processing service
